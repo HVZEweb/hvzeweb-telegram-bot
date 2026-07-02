@@ -1,0 +1,3 @@
+TELEGRAM_BOT_TOKEN=your_token_from_botfather
+TELEGRAM_ADMIN_CHAT_ID=your_numeric_chat_id
+WEBHOOK_SECRET=random_string_for_telegram_webhook_header
