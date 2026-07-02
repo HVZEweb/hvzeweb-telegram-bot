@@ -1,40 +1,7 @@
-const SITE_URL = 'https://hvzeweb.netlify.app';
+import { COPY, INLINE, SOURCE_GREETING } from './copy.js';
 
 const LABELS = {
     cancel: '❌ Отмена',
-};
-
-const INLINE = {
-    main: {
-        inline_keyboard: [
-            [
-                { text: '📋 Услуги', callback_data: 'svc' },
-                { text: '💰 Цены', callback_data: 'price' },
-            ],
-            [{ text: '❓ FAQ', callback_data: 'faq' }],
-            [{ text: '📅 Оставить заявку', callback_data: 'book' }],
-            [{ text: '✉️ Написать менеджеру', callback_data: 'contact' }],
-            [{ text: '🌐 Сайт HVZEweb', url: SITE_URL }],
-        ],
-    },
-    info: {
-        inline_keyboard: [
-            [{ text: '📅 Оставить заявку', callback_data: 'book' }],
-            [{ text: '« Главное меню', callback_data: 'menu' }],
-        ],
-    },
-    back: {
-        inline_keyboard: [[{ text: '« Главное меню', callback_data: 'menu' }]],
-    },
-    cancel: {
-        inline_keyboard: [[{ text: '❌ Отменить заявку', callback_data: 'cancel' }]],
-    },
-};
-
-const SOURCE_GREETING = {
-    site: '🌐 Вы перешли с сайта HVZEweb',
-    portfolio_demo: '🎨 Демо из портфолио — попробуйте оставить заявку',
-    direct: '',
 };
 
 export default {
@@ -197,12 +164,7 @@ async function saveSession(chatId, session) {
 async function resetToMenu(env, chatId, source, cancelled) {
     await saveSession(chatId, defaultSession(source));
     if (cancelled) {
-        await tgSend(
-            env,
-            chatId,
-            '🔄 Заявка отменена.\n\nВы снова в главном меню — выберите действие 👇',
-            INLINE.main
-        );
+        await tgSend(env, chatId, COPY.cancelled, INLINE.main);
     } else {
         await sendMenuPrompt(env, chatId);
     }
@@ -215,12 +177,7 @@ async function handleText(env, chatId, text, session, from) {
             session.step = 'service';
             await saveSession(chatId, session);
             await sendTyping(env, chatId);
-            await tgSend(
-                env,
-                chatId,
-                `📝 <b>Шаг 2 из 3</b>\n\nПриятно познакомиться, <b>${esc(text)}</b>!\n\nОпишите задачу своими словами:`,
-                INLINE.cancel
-            );
+            await tgSend(env, chatId, COPY.step2(esc(text)), INLINE.cancel);
             return;
 
         case 'service':
@@ -228,12 +185,7 @@ async function handleText(env, chatId, text, session, from) {
             session.step = 'contact';
             await saveSession(chatId, session);
             await sendTyping(env, chatId);
-            await tgSend(
-                env,
-                chatId,
-                '📝 <b>Шаг 3 из 3</b>\n\nКуда отправить ответ?\n• email\n• @username в Telegram',
-                INLINE.cancel
-            );
+            await tgSend(env, chatId, COPY.step3, INLINE.cancel);
             return;
 
         case 'contact':
@@ -243,7 +195,7 @@ async function handleText(env, chatId, text, session, from) {
             await notifyAdmin(env, session, isQuick, from);
             await saveSession(chatId, defaultSession(session.source));
             await sendTyping(env, chatId);
-            await tgSend(env, chatId, successText(), INLINE.main);
+            await tgSend(env, chatId, COPY.success, INLINE.main);
             return;
         }
 
@@ -251,12 +203,7 @@ async function handleText(env, chatId, text, session, from) {
             break;
     }
 
-    await tgSend(
-        env,
-        chatId,
-        '👇 Выберите действие в меню или отправьте /start',
-        INLINE.main
-    );
+    await tgSend(env, chatId, COPY.fallback, INLINE.main);
 }
 
 async function startBooking(env, chatId, session) {
@@ -264,12 +211,7 @@ async function startBooking(env, chatId, session) {
     session.lead = { name: '', service: '', contact: '' };
     await saveSession(chatId, session);
     await sendTyping(env, chatId);
-    await tgSend(
-        env,
-        chatId,
-        '📝 <b>Шаг 1 из 3</b>\n\nКак к вам обращаться?\n\n<i>Можно отменить в любой момент.</i>',
-        INLINE.cancel
-    );
+    await tgSend(env, chatId, COPY.step1, INLINE.cancel);
 }
 
 async function startQuickContact(env, chatId, session) {
@@ -277,90 +219,32 @@ async function startQuickContact(env, chatId, session) {
     session.lead = { name: '', service: '', contact: '' };
     await saveSession(chatId, session);
     await sendTyping(env, chatId);
-    await tgSend(
-        env,
-        chatId,
-        '✉️ <b>Связь с менеджером</b>\n\nНапишите email или @username — ответим в рабочий день (Пн–Пт, 10:00–19:00 МСК).',
-        INLINE.cancel
-    );
+    await tgSend(env, chatId, COPY.quickContact, INLINE.cancel);
 }
 
 async function sendServices(env, chatId) {
     await sendTyping(env, chatId);
-    await tgSend(
-        env,
-        chatId,
-        `📋 <b>Наши услуги</b>\n\n` +
-            `🌐 Лендинги и корпоративные сайты\n` +
-            `⚙️ WordPress под ключ\n` +
-            `🛒 Интернет-магазины\n` +
-            `🤖 Telegram-боты и автоматизация\n\n` +
-            `💬 Нужна консультация? Нажмите «Оставить заявку»`,
-        INLINE.info
-    );
+    await tgSend(env, chatId, COPY.services, INLINE.info);
 }
 
 async function sendFaq(env, chatId) {
     await sendTyping(env, chatId);
-    await tgSend(
-        env,
-        chatId,
-        `❓ <b>Частые вопросы</b>\n\n` +
-            `⏱ <b>Сроки</b>\n` +
-            `• Лендинг — 5–7 дней\n` +
-            `• Бот — 3–5 дней\n\n` +
-            `💳 <b>Оплата</b>\n` +
-            `50% старт · 50% при сдаче\n\n` +
-            `🛠 <b>Поддержка</b>\n` +
-            `30 дней включены в Premium-пакет`,
-        INLINE.info
-    );
+    await tgSend(env, chatId, COPY.faq, INLINE.info);
 }
 
 async function sendPrices(env, chatId) {
     await sendTyping(env, chatId);
-    await tgSend(
-        env,
-        chatId,
-        `💰 <b>Стартовые цены</b>\n\n` +
-            `📇 Визитка — от <b>7 000 ₽</b>\n` +
-            `🚀 Лендинг — от <b>10 000 ₽</b>\n` +
-            `🤖 Telegram-бот — от <b>15 000 ₽</b>\n\n` +
-            `<i>Точная смета — после короткого брифа, без скрытых платежей.</i>`,
-        INLINE.info
-    );
-}
-
-function successText() {
-    return (
-        `✅ <b>Заявка принята!</b>\n\n` +
-        `Менеджер свяжется в течение рабочего дня\n` +
-        `<i>Пн–Пт, 10:00–19:00 МСК</i>\n\n` +
-        `Спасибо, что выбрали <b>HVZEweb</b> 🙌`
-    );
+    await tgSend(env, chatId, COPY.prices, INLINE.info);
 }
 
 async function sendWelcome(env, chatId, source) {
-    const sourceLine = SOURCE_GREETING[source] || (source !== 'direct' ? `🔗 Источник: ${esc(source)}` : '');
-    const sourceBlock = sourceLine ? `\n${sourceLine}\n` : '\n';
-
     await sendTyping(env, chatId);
-    await tgSend(
-        env,
-        chatId,
-        `✨ <b>ServiceDesk Bot</b>\n` +
-            `<i>HVZEweb · веб-студия</i>` +
-            `${sourceBlock}\n` +
-            `Принимаю заявки <b>24/7</b>:\n` +
-            `меню · цены · FAQ · связь с менеджером\n\n` +
-            `👇 Выберите действие:`,
-        INLINE.main
-    );
+    await tgSend(env, chatId, COPY.welcome(source), INLINE.main);
 }
 
 async function sendMenuPrompt(env, chatId) {
     await sendTyping(env, chatId);
-    await tgSend(env, chatId, '🏠 <b>Главное меню</b>\n\n👇 Чем могу помочь?', INLINE.main);
+    await tgSend(env, chatId, COPY.menu, INLINE.main);
 }
 
 async function notifyAdmin(env, session, isQuick, from) {
