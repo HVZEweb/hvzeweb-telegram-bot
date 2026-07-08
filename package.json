@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
+    "webhook": "node scripts/set-webhook.js",
     "tail": "wrangler tail"
   },
   "devDependencies": {
