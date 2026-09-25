@@ -1,6 +1,6 @@
 # HVZEweb Telegram Bot
 
-Live demo bot for [HVZEweb](https://hvzeweb.netlify.app) portfolio — menu, FAQ, lead capture, admin notifications.
+Live demo bot for [HVZEweb](https://github.com/HVZEweb) portfolio — menu, FAQ, lead capture, admin notifications.
 
 **Bot:** [@HVZEwebDemoBot](https://t.me/HVZEwebDemoBot)
 
@@ -34,7 +34,7 @@ Add repository secrets:
 
 Worker secrets (`TELEGRAM_*`, `WEBHOOK_SECRET`) — in Cloudflare dashboard (Settings → Secrets), not in GitHub.
 
-Push to `main` triggers `.github/workflows/deploy.yml`.
+Automatic deploy is disabled for now; deploy manually with `npm run deploy` when needed.
 
 ## Webhook (once after deploy)
 
